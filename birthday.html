@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Birthday Bharath ❤️ | Forever Us</title>
+  
+  <!-- Tailwind CSS & Google Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Alex+Brush&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons & Canvas Confetti -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #0b0710;
+      color: #fce7f3;
+      overflow-x: hidden;
+    }
+    .font-serif {
+      font-family: 'Playfair Display', serif;
+    }
+    .font-script {
+      font-family: 'Alex Brush', cursive;
+    }
+    .glass-card {
+      background: rgba(22, 12, 33, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(244, 114, 182, 0.25);
+    }
+    .glow-heart {
+      filter: drop-shadow(0 0 12px rgba(244, 63, 94, 0.75));
+    }
+    
+    #bgWallpaper {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      z-index: -2;
+      transition: background-image 0.5s ease-in-out;
+    }
+    #bgOverlay {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at center, rgba(15, 7, 23, 0.78) 0%, rgba(9, 4, 15, 0.95) 100%);
+      z-index: -1;
+    }
+
+    .bubble-heart {
+      position: fixed;
+      bottom: -60px;
+      pointer-events: none;
+      z-index: 10;
+      animation: floatUp linear infinite;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 0; }
+      15% { opacity: 0.65; }
+      85% { opacity: 0.65; }
+      100% { transform: translateY(-115vh) scale(1.15) rotate(45deg); opacity: 0; }
+    }
+
+    .editable-active {
+      outline: 1.5px dashed rgba(244, 114, 182, 0.8) !important;
+      outline-offset: 3px;
+      border-radius: 4px;
+      background: rgba(244, 63, 94, 0.08);
+      cursor: text !important;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spinning-vinyl {
+      animation: spin 7s linear infinite;
+    }
+    .paused {
+      animation-play-state: paused;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .animate-shake {
+      animation: shake 0.4s ease-in-out;
+    }
+
+    #gameCanvas {
+      background: radial-gradient(circle at center, rgba(30, 15, 45, 0.95) 0%, rgba(12, 6, 20, 0.98) 100%);
+      border: 2px solid rgba(244, 114, 182, 0.3);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      touch-action: none;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased min-h-screen selection:bg-rose-500 selection:text-white">
+
+  <!-- Background Wallpaper -->
+  <div id="bgWallpaper"></div>
+  <div id="bgOverlay"></div>
+
+  <!-- Rising Heart Bubbles -->
+  <div id="bubbleContainer" class="fixed inset-0 pointer-events-none overflow-hidden z-10"></div>
+
+  <!-- Background Music Player (Never stops across pages or game) -->
+  <audio id="bgAudio" loop preload="auto"></audio>
+
+  <!-- Sticky Top Bar -->
+  <header id="topBar" class="hidden fixed top-0 left-0 right-0 z-40 bg-black/75 backdrop-blur-md border-b border-white/10 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i data-lucide="heart" class="w-5 h-5 text-rose-500 fill-rose-500 animate-pulse"></i>
+        <span class="font-script text-2xl text-rose-300">Forever Us</span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Play / Pause Music Shortcut -->
+        <button onclick="toggleAudio()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-rose-500/20 border border-white/15 text-xs text-rose-200 transition cursor-pointer">
+          <i id="miniAudioIcon" data-lucide="play" class="w-3.5 h-3.5"></i>
+          <span id="miniAudioText">Play Song</span>
+        </button>
+
+        <!-- Change Wallpaper -->
+        <label class="edit-control hidden px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-400/50 bg-purple-500/20 text-purple-200 hover:bg-purple-500 hover:text-white transition flex items-center gap-1.5 cursor-pointer">
+          <i data-lucide="image" class="w-3.5 h-3.5"></i>
+          <span>Set Wallpaper</span>
+          <input type="file" accept="image/*" onchange="handleWallpaperUpload(event)" class="hidden">
+        </label>
+
+        <!-- Edit Mode -->
+        <button id="editModeBtn" onclick="toggleEditMode()" class="px-3.5 py-1.5 rounded-full text-xs font-semibold border border-rose-400/50 bg-rose-500/20 text-rose-200 hover:bg-rose-500 hover:text-white transition flex items-center gap-1.5 cursor-pointer">
+          <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+          <span id="editBtnText">Enable Edit Mode</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+
+  <!-- ==================== PAGE 1: PASSCODE ==================== -->
+  <section id="page1" class="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-2xl p-4">
+    <div class="glass-card max-w-md w-full p-8 rounded-3xl text-center shadow-2xl relative overflow-hidden border border-rose-500/30">
+      <div class="absolute -top-12 -left-12 w-36 h-36 bg-rose-500/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-12 -right-12 w-36 h-36 bg-pink-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="w-20 h-20 mx-auto mb-5 rounded-full bg-gradient-to-tr from-rose-500 to-pink-400 flex items-center justify-center shadow-lg shadow-rose-500/40 animate-bounce">
+        <i data-lucide="lock" class="w-9 h-9 text-white"></i>
+      </div>
+
+      <h2 class="font-serif text-3xl font-bold text-white mb-2">A Secret For You</h2>
+      <p class="text-rose-200 text-sm mb-6">Enter your birthday passcode to unlock our little universe <br><span class="text-xs text-rose-300/80">(Hint: DDMMYY)</span></p>
+
+      <div class="space-y-4">
+        <div class="relative">
+          <input 
+            type="password" 
+            id="passcodeInput" 
+            placeholder="······" 
+            maxlength="6"
+            class="w-full text-center text-3xl tracking-[0.35em] font-bold py-3.5 px-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder-rose-300/40 focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/40 transition-all"
+            onkeydown="if(event.key === 'Enter') checkUnlock();"
+          />
+        </div>
+        <p id="errorMsg" class="text-xs text-rose-400 hidden font-medium">Wrong code my love, try again! ❤️</p>
+        <button 
+          type="button" 
+          onclick="checkUnlock()" 
+          class="w-full py-3.5 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-rose-500/30 transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <span>Unlock Our Memories</span>
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==================== PAGE 2: MUSIC & VINYL ==================== -->
+  <section id="page2" class="hidden min-h-screen pt-28 pb-16 px-4 flex flex-col items-center justify-center text-center">
+    <div class="glass-card max-w-2xl w-full p-8 sm:p-12 rounded-3xl border border-rose-500/30 relative shadow-2xl">
+      <span class="inline-block px-4 py-1.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-semibold tracking-widest uppercase mb-4">
+        Step 1 • Our Soundtrack
+      </span>
+
+      <h1 class="font-serif text-3xl sm:text-5xl font-bold text-white mb-4">
+        Happy Birthday, <br><span class="font-script text-5xl sm:text-6xl text-rose-400">Bharath</span>
+      </h1>
+
+      <p 
+        id="musicRomanticText" 
+        onblur="updateMusicText(this.innerText)"
+        class="text-rose-100/90 text-sm sm:text-base italic leading-relaxed mb-8 max-w-lg mx-auto"
+      >
+        “Every beat of my heart plays a melody written only for you. Tap our photo to start the rhythm of our story — our love song will stay with you across every step we take together.”
+      </p>
+
+      <!-- Vinyl Record -->
+      <div class="flex flex-col items-center justify-center mb-8 relative">
+        <div class="relative group">
+          <div 
+            id="vinylDisc" 
+            onclick="toggleAudio()" 
+            class="w-48 h-48 sm:w-56 sm:h-56 rounded-full p-2 border-4 border-rose-500/40 shadow-2xl flex items-center justify-center cursor-pointer transition transform hover:scale-105 spinning-vinyl paused overflow-hidden bg-black/90 relative"
+            title="Click to Play/Pause Our Song"
+          >
+            <img 
+              id="vinylPhoto" 
+              src="https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=600&q=80" 
+              class="w-full h-full object-cover rounded-full pointer-events-none" 
+              alt="Our Song Cover"
+            >
+
+            <div class="absolute inset-0 m-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/60 backdrop-blur-sm border-2 border-rose-400/80 flex items-center justify-center text-white shadow-lg pointer-events-none">
+              <i id="vinylPlayIcon" data-lucide="play" class="w-6 h-6 sm:w-7 sm:h-7 ml-0.5 text-rose-300"></i>
+            </div>
+          </div>
+
+          <!-- Change Vinyl Photo Button -->
+          <div class="edit-control hidden absolute bottom-0 right-0 z-30">
+            <button 
+              type="button" 
+              onclick="document.getElementById('vinylPhotoInput').click()" 
+              class="p-3 rounded-full bg-rose-600 hover:bg-rose-700 text-white shadow-2xl cursor-pointer transition active:scale-95 flex items-center justify-center border-2 border-white/40" 
+              title="Change Vinyl Photo"
+            >
+              <i data-lucide="camera" class="w-4 h-4 pointer-events-none"></i>
+            </button>
+            <input type="file" id="vinylPhotoInput" accept="image/*" onchange="handleVinylPhotoUpload(event)" class="hidden">
+          </div>
+        </div>
+
+        <p id="songStatusText" class="text-xs text-rose-300/80 mt-4 font-medium">Tap our photo to start our soundtrack ❤️</p>
+      </div>
+
+      <!-- Upload Song -->
+      <div class="mb-8 flex items-center justify-center gap-3">
+        <label class="px-4 py-2 rounded-xl bg-white/10 hover:bg-rose-500/20 border border-white/20 text-xs text-rose-200 font-semibold cursor-pointer transition flex items-center gap-2">
+          <i data-lucide="upload" class="w-4 h-4"></i>
+          <span>Upload Audio File (WhatsApp / MP3)</span>
+          <input type="file" accept="audio/*" onchange="handleAudioUpload(event)" class="hidden">
+        </label>
+      </div>
+
+      <!-- Continue to Page 3 (The Game) -->
+      <div class="pt-6 border-t border-white/10 flex justify-center">
+        <button 
+          onclick="goToPage(3)" 
+          class="px-8 py-3.5 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 hover:opacity-90 text-white font-semibold rounded-2xl shadow-lg shadow-rose-500/30 transition flex items-center gap-2 cursor-pointer transform hover:scale-[1.02]"
+        >
+          <span>Continue To Birthday Challenge</span>
+          <i data-lucide="gamepad-2" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==================== PAGE 3: THE MINI-GAME ==================== -->
+  <section id="page3" class="hidden min-h-screen pt-28 pb-16 px-4 flex flex-col items-center justify-center text-center">
+    <div class="glass-card max-w-xl w-full p-6 sm:p-8 rounded-3xl border border-rose-500/30 relative shadow-2xl">
+      <span class="inline-block px-4 py-1.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-semibold tracking-widest uppercase mb-3">
+        Step 2 • The Birthday Challenge
+      </span>
+
+      <h2 class="font-serif text-2xl sm:text-3xl font-bold text-white mb-1">Catch My Heart, Bharath! 🎮</h2>
+      <p class="text-xs sm:text-sm text-rose-200/80 mb-4">
+        Catch the falling hearts & birthday treats to score 100 points! <br>
+        <span class="text-xs text-rose-300/70">(Use arrow keys, move mouse, or drag with finger)</span>
+      </p>
+
+      <!-- Scoreboard -->
+      <div class="flex items-center justify-around mb-4 bg-white/5 border border-white/10 rounded-2xl p-3 text-xs sm:text-sm">
+        <div>
+          <span class="text-rose-300/70">Current Score:</span>
+          <span id="gameScore" class="font-bold text-rose-400 text-base sm:text-lg ml-1">0</span>
+        </div>
+        <div class="h-6 w-px bg-white/10"></div>
+        <div>
+          <span class="text-rose-300/70">Target:</span>
+          <span class="font-bold text-white text-base sm:text-lg ml-1">100 Pts</span>
+        </div>
+      </div>
+
+      <!-- Game Screen -->
+      <div class="relative w-full aspect-[4/3] rounded-2xl overflow-hidden flex items-center justify-center">
+        <canvas id="gameCanvas" width="400" height="300" class="w-full h-full rounded-2xl"></canvas>
+
+        <!-- Victory Popup -->
+        <div id="gameVictoryCard" class="hidden absolute inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-30">
+          <div class="w-16 h-16 rounded-full bg-rose-500/20 flex items-center justify-center mb-3 glow-heart">
+            <i data-lucide="trophy" class="w-8 h-8 text-yellow-400"></i>
+          </div>
+          <h3 class="font-serif text-2xl font-bold text-white mb-2">High Score Achieved! 🏆</h3>
+          <p class="text-rose-200/90 text-xs sm:text-sm max-w-xs mb-6">
+            Prize Unlocked: Lifetime ownership of my heart, infinite warm hugs, and all your birthday wishes granted! ❤️
+          </p>
+          <button 
+            onclick="goToPage(4)" 
+            class="px-7 py-3 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 hover:opacity-90 text-white font-semibold rounded-xl text-sm flex items-center gap-2 cursor-pointer shadow-lg transition transform hover:scale-105"
+          >
+            <span>Continue To Our Memories</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Controls Bottom Bar -->
+      <div class="mt-6 flex items-center justify-between text-xs">
+        <button onclick="goToPage(2)" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-rose-200 transition cursor-pointer">
+          ← Back to Music
+        </button>
+        <button onclick="goToPage(4)" class="text-rose-300/60 hover:text-rose-300 transition underline cursor-pointer">
+          Skip Game →
+        </button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==================== PAGE 4: HEARTS & CHAPTERS ==================== -->
+  <section id="page4" class="hidden min-h-screen pt-28 pb-16 px-4 max-w-4xl mx-auto">
+    <div class="text-center mb-10">
+      <span class="inline-block px-4 py-1.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-semibold tracking-widest uppercase mb-3">
+        Step 3 • Tap The Hearts
+      </span>
+      <h2 class="font-serif text-3xl sm:text-4xl font-bold text-white mb-2">Our Secret Whisper Hearts</h2>
+      <p class="text-rose-200/80 text-sm">Every heart holds a sweet memory of us.</p>
+    </div>
+
+    <div id="heartsContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-16"></div>
+
+    <div class="flex items-center justify-between mb-6 pt-8 border-t border-white/10">
+      <div>
+        <h2 class="font-serif text-3xl sm:text-4xl font-bold text-white">Our Story Chapters</h2>
+        <p class="text-rose-300/80 text-sm mt-1">One chapter at a time</p>
+      </div>
+      <button 
+        onclick="addChapter()" 
+        class="edit-control hidden px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-lg transition"
+      >
+        <i data-lucide="plus" class="w-4 h-4"></i>
+        <span>Add New Chapter</span>
+      </button>
+    </div>
+
+    <!-- 1-by-1 Chapter Frame -->
+    <div class="glass-card rounded-3xl p-6 sm:p-10 border border-rose-500/30 shadow-2xl relative">
+      <div id="chapterSlideViewport"></div>
+
+      <div class="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
+        <button onclick="prevChapter()" class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-rose-600 text-white text-xs font-semibold flex items-center gap-2 transition cursor-pointer">
+          <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          <span>Previous Chapter</span>
+        </button>
+        <span id="chapterCounterText" class="text-xs font-semibold text-rose-300 tracking-wider">Chapter 1 of 4</span>
+        <button onclick="nextChapter()" class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-rose-600 text-white text-xs font-semibold flex items-center gap-2 transition cursor-pointer">
+          <span>Next Chapter</span>
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-16 pt-8 border-t border-white/10 flex items-center justify-between">
+      <button onclick="goToPage(3)" class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-rose-200 text-xs font-semibold flex items-center gap-2 cursor-pointer transition">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        <span>Back to Game</span>
+      </button>
+      <button onclick="goToPage(5)" class="px-7 py-3 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 hover:opacity-90 text-white font-semibold rounded-xl text-sm flex items-center gap-2 cursor-pointer shadow-lg transition">
+        <span>Go to Photo Vault Slideshow (3s)</span>
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </section>
+
+
+  <!-- ==================== PAGE 5: PHOTO VAULT ==================== -->
+  <section id="page5" class="hidden min-h-screen pt-28 pb-16 px-4 max-w-4xl mx-auto">
+    <div class="text-center mb-8">
+      <span class="inline-block px-4 py-1.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-semibold tracking-widest uppercase mb-3">
+        Step 4 • Auto Slideshow (3 Seconds)
+      </span>
+      <h2 class="font-serif text-3xl sm:text-5xl font-bold text-white mb-2">Our Photo Vault</h2>
+      <p class="text-rose-200/80 text-sm max-w-lg mx-auto">Add 15, 20, 30+ extra photos! They automatically cycle every 3 seconds.</p>
+    </div>
+
+    <div class="flex justify-end mb-4">
+      <label class="edit-control hidden px-4 py-2.5 bg-gradient-to-r from-rose-500 to-purple-600 hover:opacity-90 text-white rounded-xl text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-lg transition">
+        <i data-lucide="image-plus" class="w-4 h-4"></i>
+        <span>+ Upload Photos to Vault (Select Multiple)</span>
+        <input type="file" multiple accept="image/*" onchange="handleVaultUpload(event)" class="hidden">
+      </label>
+    </div>
+
+    <div class="glass-card rounded-3xl p-4 sm:p-6 border border-rose-500/30 shadow-2xl relative">
+      <div id="carouselContainer" class="relative w-full aspect-[4/3] sm:aspect-[16/10] bg-black/90 rounded-2xl overflow-hidden flex items-center justify-center border border-white/10"></div>
+
+      <button onclick="prevSlide()" class="absolute left-6 top-1/2 -translate-y-1/2 p-2.5 sm:p-3 rounded-full bg-black/60 hover:bg-rose-600/90 text-white transition border border-white/20 shadow-lg cursor-pointer">
+        <i data-lucide="chevron-left" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+      </button>
+      <button onclick="nextSlide()" class="absolute right-6 top-1/2 -translate-y-1/2 p-2.5 sm:p-3 rounded-full bg-black/60 hover:bg-rose-600/90 text-white transition border border-white/20 shadow-lg cursor-pointer">
+        <i data-lucide="chevron-right" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+      </button>
+
+      <div class="mt-4 flex items-center justify-between text-xs text-rose-200/80 px-2">
+        <span id="slideCounterText" class="font-semibold tracking-wider">Photo 0 of 0</span>
+        <button onclick="toggleAutoSlideshow()" id="autoPlayBtn" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-200 transition cursor-pointer">
+          <i id="autoPlayIcon" data-lucide="pause" class="w-3.5 h-3.5"></i>
+          <span id="autoPlayText">Pause Slideshow</span>
+        </button>
+      </div>
+
+      <div id="thumbnailStrip" class="mt-4 flex gap-2 overflow-x-auto pb-2 border-t border-white/10 pt-3"></div>
+    </div>
+
+    <div class="mt-16 pt-8 border-t border-white/10 flex items-center justify-between">
+      <button onclick="goToPage(4)" class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-rose-200 text-xs font-semibold flex items-center gap-2 cursor-pointer transition">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        <span>Back to Story</span>
+      </button>
+      <button onclick="goToPage(6)" class="px-7 py-3 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 hover:opacity-90 text-white font-semibold rounded-xl text-sm flex items-center gap-2 cursor-pointer shadow-lg transition">
+        <span>Go to Video Reels Finale</span>
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </section>
+
+
+  <!-- ==================== PAGE 6: VIDEO REELS ==================== -->
+  <section id="page6" class="hidden min-h-screen pt-28 pb-16 px-4 max-w-5xl mx-auto">
+    <div class="text-center mb-10">
+      <span class="inline-block px-4 py-1.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-semibold tracking-widest uppercase mb-3">
+        Finale • Motion Memories
+      </span>
+      <h2 class="font-serif text-3xl sm:text-5xl font-bold text-white mb-2">Our Video Reels</h2>
+      <p class="text-rose-200/80 text-sm max-w-lg mx-auto">Press play on any clip. The background song will pause automatically while the video plays!</p>
+    </div>
+
+    <div class="flex justify-end mb-6">
+      <label class="edit-control hidden px-4 py-2.5 bg-gradient-to-r from-rose-500 to-purple-600 hover:opacity-90 text-white rounded-xl text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-lg transition">
+        <i data-lucide="video" class="w-4 h-4"></i>
+        <span>+ Add Video Clip (MP4 / WebM)</span>
+        <input type="file" accept="video/*" onchange="handleMultipleVideoUpload(event)" class="hidden">
+      </label>
+    </div>
+
+    <div id="videoGalleryGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left"></div>
+
+    <div class="mt-16 glass-card p-8 rounded-3xl border border-rose-500/30 text-center">
+      <p class="font-script text-4xl sm:text-5xl text-rose-400 mb-2">Happy Birthday Bharath</p>
+      <p class="text-xs text-rose-300/70 tracking-widest uppercase mb-4">Every day with you is my favorite adventure</p>
+      <div class="flex justify-center">
+        <button onclick="goToPage(2)" class="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-rose-200 text-xs font-semibold flex items-center gap-2 transition cursor-pointer">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          <span>Replay Journey from Beginning</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==================== POPUP MODAL ==================== -->
+  <div id="heartModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
+    <div class="glass-card max-w-lg w-full rounded-3xl p-6 relative border border-rose-500/40 shadow-2xl">
+      <button onclick="closeHeartModal()" class="absolute top-4 right-4 text-rose-300 hover:text-white p-1.5 rounded-full bg-white/10 transition cursor-pointer">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div id="modalMediaContainer" class="w-full min-h-[220px] max-h-[360px] rounded-2xl overflow-hidden mb-5 bg-black/70 flex items-center justify-center border border-white/10 relative p-2"></div>
+
+      <div class="text-center">
+        <h3 id="modalTitle" class="font-serif text-2xl font-bold text-white mb-2" onblur="updateHeartText('title', this.innerText)"></h3>
+        <p id="modalQuote" class="text-rose-200/90 text-sm italic leading-relaxed" onblur="updateHeartText('quote', this.innerText)"></p>
+      </div>
+
+      <div class="edit-control hidden mt-5 pt-4 border-t border-white/10 flex justify-end gap-2">
+        <label class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition">
+          <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+          <span>Change Photo</span>
+          <input type="file" accept="image/*" onchange="handleHeartMediaUpload(event)" class="hidden">
+        </label>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== JAVASCRIPT ==================== -->
+  <script>
+    const PASSCODE = "061093";
+    let isEditMode = false;
+    let currentPoppedIndex = null;
+    let currentPage = 1;
+    let currentVaultIndex = 0;
+    let currentChapterIndex = 0;
+    let autoSlideshowTimer = null;
+    let wasMusicPlayingBeforeVideo = false;
+    const audio = document.getElementById('bgAudio');
+
+    // ==================== INDEXEDDB ====================
+    let db;
+    const dbReq = indexedDB.open("BharathMasterDB", 3);
+
+    dbReq.onupgradeneeded = function(e) {
+      db = e.target.result;
+      if (!db.objectStoreNames.contains("audioStore")) db.createObjectStore("audioStore");
+      if (!db.objectStoreNames.contains("videoStore")) db.createObjectStore("videoStore", { keyPath: "id", autoIncrement: true });
+      if (!db.objectStoreNames.contains("vaultStore")) db.createObjectStore("vaultStore", { keyPath: "id", autoIncrement: true });
+      if (!db.objectStoreNames.contains("metaStore")) db.createObjectStore("metaStore");
+    };
+
+    dbReq.onsuccess = function(e) {
+      db = e.target.result;
+      loadSavedAudioFromDB();
+      loadSavedVideosFromDB();
+      loadSavedVaultFromDB();
+      loadSavedVinylFromDB();
+    };
+
+    function saveAudioToDB(blob) {
+      if (!db) return;
+      const tx = db.transaction("audioStore", "readwrite");
+      tx.objectStore("audioStore").put(blob, "bgSong");
+    }
+
+    function loadSavedAudioFromDB() {
+      if (!db) return;
+      const tx = db.transaction("audioStore", "readonly");
+      const req = tx.objectStore("audioStore").get("bgSong");
+      req.onsuccess = function() {
+        if (req.result) {
+          audio.src = URL.createObjectURL(req.result);
+          const status = document.getElementById('songStatusText');
+          if (status) status.textContent = "Song loaded and ready to play ❤️";
+        }
+      };
+    }
+
+    function handleAudioUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      saveAudioToDB(file);
+      audio.src = URL.createObjectURL(file);
+      audio.play().then(() => setVinylState(true)).catch(err => console.log(err));
+      const status = document.getElementById('songStatusText');
+      if (status) status.textContent = "Your audio has been saved permanently ❤️";
+    }
+
+    function toggleAudio() {
+      if (!audio.src) {
+        alert("Please click 'Upload Audio File' first to choose your WhatsApp or MP3 song!");
+        return;
+      }
+      if (audio.paused) {
+        audio.play();
+        setVinylState(true);
+      } else {
+        audio.pause();
+        setVinylState(false);
+      }
+    }
+
+    function setVinylState(isPlaying) {
+      const disc = document.getElementById('vinylDisc');
+      const icon = document.getElementById('vinylPlayIcon');
+      const miniIcon = document.getElementById('miniAudioIcon');
+      const miniText = document.getElementById('miniAudioText');
+
+      if (isPlaying) {
+        if (disc) disc.classList.remove('paused');
+        if (icon) icon.setAttribute('data-lucide', 'pause');
+        if (miniIcon) miniIcon.setAttribute('data-lucide', 'pause');
+        if (miniText) miniText.textContent = "Pause Song";
+      } else {
+        if (disc) disc.classList.add('paused');
+        if (icon) icon.setAttribute('data-lucide', 'play');
+        if (miniIcon) miniIcon.setAttribute('data-lucide', 'play');
+        if (miniText) miniText.textContent = "Play Song";
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function loadSavedVinylFromDB() {
+      if (!db) return;
+      const tx = db.transaction("metaStore", "readonly");
+      const req = tx.objectStore("metaStore").get("vinylPhoto");
+      req.onsuccess = function() {
+        if (req.result) {
+          const vImg = document.getElementById('vinylPhoto');
+          if (vImg) vImg.src = URL.createObjectURL(req.result);
+        }
+      };
+    }
+
+    function handleVinylPhotoUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const vImg = document.getElementById('vinylPhoto');
+      if (vImg) vImg.src = URL.createObjectURL(file);
+      if (db) {
+        const tx = db.transaction("metaStore", "readwrite");
+        tx.objectStore("metaStore").put(file, "vinylPhoto");
+      }
+      e.target.value = '';
+    }
+
+    // ==================== MINI-GAME LOGIC ====================
+    let gameScore = 0;
+    let gameLoopId = null;
+    let items = [];
+    const player = { x: 175, y: 250, width: 60, height: 26, speed: 7 };
+    let keys = {};
+    let gameInitialized = false;
+
+    function initMiniGame() {
+      const canvas = document.getElementById('gameCanvas');
+      if (!canvas) return;
+
+      gameScore = 0;
+      items = [];
+      document.getElementById('gameScore').innerText = '0';
+      document.getElementById('gameVictoryCard').classList.add('hidden');
+
+      if (!gameInitialized) {
+        window.addEventListener('keydown', e => { keys[e.key] = true; });
+        window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+        canvas.addEventListener('mousemove', e => {
+          const rect = canvas.getBoundingClientRect();
+          player.x = (e.clientX - rect.left) * (canvas.width / rect.width) - player.width / 2;
+        });
+
+        canvas.addEventListener('touchmove', e => {
+          const rect = canvas.getBoundingClientRect();
+          if (e.touches[0]) {
+            player.x = (e.touches[0].clientX - rect.left) * (canvas.width / rect.width) - player.width / 2;
+          }
+        }, { passive: true });
+
+        gameInitialized = true;
+      }
+
+      if (gameLoopId) cancelAnimationFrame(gameLoopId);
+      gameLoop();
+    }
+
+    function gameLoop() {
+      const canvas = document.getElementById('gameCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      // Movement
+      if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
+      if (keys['ArrowRight'] && player.x < canvas.width - player.width) player.x += player.speed;
+
+      if (player.x < 0) player.x = 0;
+      if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+
+      // Spawn items
+      if (Math.random() < 0.04) {
+        const types = [
+          { icon: '❤️', points: 10, speed: 2.2 },
+          { icon: '💖', points: 10, speed: 2.5 },
+          { icon: '☕', points: 20, speed: 3.0 },
+          { icon: '🎂', points: 50, speed: 3.5 }
+        ];
+        const chosen = types[Math.floor(Math.random() * types.length)];
+        items.push({
+          x: Math.random() * (canvas.width - 30) + 10,
+          y: -20,
+          ...chosen
+        });
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw Basket
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.roundRect(player.x, player.y, player.width, player.height, 12);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Bharath', player.x + player.width / 2, player.y + 17);
+
+      // Draw & Update items
+      for (let i = items.length - 1; i >= 0; i--) {
+        const item = items[i];
+        item.y += item.speed;
+
+        ctx.font = '22px serif';
+        ctx.fillText(item.icon, item.x, item.y);
+
+        // Catch Collision
+        if (
+          item.y >= player.y - 10 &&
+          item.y <= player.y + player.height &&
+          item.x >= player.x - 15 &&
+          item.x <= player.x + player.width + 15
+        ) {
+          gameScore += item.points;
+          document.getElementById('gameScore').innerText = gameScore;
+          items.splice(i, 1);
+
+          if (gameScore >= 100) {
+            triggerGameWin();
+            return;
+          }
+        } else if (item.y > canvas.height + 25) {
+          items.splice(i, 1);
+        }
+      }
+
+      gameLoopId = requestAnimationFrame(gameLoop);
+    }
+
+    function triggerGameWin() {
+      if (gameLoopId) cancelAnimationFrame(gameLoopId);
+      const victoryCard = document.getElementById('gameVictoryCard');
+      if (victoryCard) victoryCard.classList.remove('hidden');
+
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+      }
+    }
+
+    // ==================== PAGE NAVIGATION ====================
+    function goToPage(pageNumber) {
+      currentPage = pageNumber;
+
+      if (pageNumber !== 3 && gameLoopId) {
+        cancelAnimationFrame(gameLoopId);
+      }
+      if (pageNumber !== 5 && autoSlideshowTimer) {
+        clearInterval(autoSlideshowTimer);
+        autoSlideshowTimer = null;
+      }
+
+      for (let i = 1; i <= 6; i++) {
+        const el = document.getElementById(`page${i}`);
+        if (el) el.classList.add('hidden');
+      }
+
+      const target = document.getElementById(`page${pageNumber}`);
+      if (target) {
+        target.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      const topBar = document.getElementById('topBar');
+      if (topBar) {
+        if (pageNumber > 1) topBar.classList.remove('hidden');
+        else topBar.classList.add('hidden');
+      }
+
+      if (pageNumber === 3) initMiniGame();
+      if (pageNumber === 4) { renderHearts(); renderChapterSlide(); }
+      if (pageNumber === 5) { renderVault(); startAutoSlideshow(); }
+      if (pageNumber === 6) renderVideoGallery();
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function checkUnlock() {
+      const input = document.getElementById('passcodeInput');
+      const val = input ? input.value.trim() : '';
+
+      if (val === '061093' || val === '61093') {
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 130, spread: 85, origin: { y: 0.6 } });
+        }
+        goToPage(2);
+      } else {
+        const err = document.getElementById('errorMsg');
+        if (err) err.classList.remove('hidden');
+        if (input) {
+          input.classList.add('animate-shake');
+          setTimeout(() => input.classList.remove('animate-shake'), 400);
+        }
+      }
+    }
+
+    // ==================== DATA & STORIES ====================
+    const defaultHearts = [
+      { title: "Your Warm Smile", quote: "The way your eyes light up whenever you laugh.", media: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=800&q=80" },
+      { title: "Holding Hands", quote: "No matter where we walk, holding your hand feels like home.", media: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=800&q=80" },
+      { title: "Late Night Talks", quote: "Sharing every dream, fear, and silly giggle until 2 AM.", media: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80" },
+      { title: "My Hero Forever", quote: "Thank you for being my steadfast rock through everything.", media: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=800&q=80" }
+    ];
+
+    const defaultChapters = [
+      {
+        tag: "CHAPTER 01",
+        title: "The First Spark",
+        date: "Where It All Started",
+        desc: "The unforgettable moment when our paths crossed, turning strangers into each other's favorite person.",
+        quote: "And suddenly, all the love songs were about you.",
+        media: []
+      },
+      {
+        tag: "CHAPTER 02",
+        title: "Falling Deeper",
+        date: "Every Shared Memory",
+        desc: "Long rides, quiet coffee conversations, and learning each other's soul inside out.",
+        quote: "You became my safest haven.",
+        media: []
+      },
+      {
+        tag: "CHAPTER 03",
+        title: "Our Sweet Everyday Life",
+        date: "Today & Tomorrow",
+        desc: "From sharing cups of tea and trading goofy jokes to finding comfort in simple quiet hugs. Living every routine with you is pure magic.",
+        quote: "The best part of my day will always be coming back into your arms.",
+        media: []
+      },
+      {
+        tag: "CHAPTER 04",
+        title: "That Very First Kiss",
+        date: "When My World Stood Still",
+        desc: "When your lips brushed softly against my forehead, all my nervous butterflies turned into pure peace. You wrapped your protection and whole soul around mine.",
+        quote: "A forehead kiss is love's silent promise of protection, tenderness, and forever.",
+        media: []
+      }
+    ];
+
+    let heartsData = JSON.parse(localStorage.getItem('bharath_hearts')) || defaultHearts;
+    let chaptersData = JSON.parse(localStorage.getItem('bharath_chapters')) || defaultChapters;
+    let savedWallpaper = localStorage.getItem('bharath_wallpaper') || "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=1920&q=80";
+    let savedMusicText = localStorage.getItem('bharath_music_text');
+
+    const wallpaperEl = document.getElementById('bgWallpaper');
+    if (wallpaperEl && savedWallpaper) {
+      wallpaperEl.style.backgroundImage = `url('${savedWallpaper}')`;
+    }
+
+    if (savedMusicText) {
+      const mTxt = document.getElementById('musicRomanticText');
+      if (mTxt) mTxt.innerText = savedMusicText;
+    }
+
+    function saveAll() {
+      try {
+        localStorage.setItem('bharath_hearts', JSON.stringify(heartsData));
+        localStorage.setItem('bharath_chapters', JSON.stringify(chaptersData));
+        if (savedWallpaper) localStorage.setItem('bharath_wallpaper', savedWallpaper);
+      } catch (err) {
+        console.warn("Storage warning:", err);
+      }
+    }
+
+    function updateMusicText(text) {
+      localStorage.setItem('bharath_music_text', text.trim());
+    }
+
+    function compressImage(file, callback) {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = function(event) {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+          } else {
+            if (height > MAX_HEIGHT) { height *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL('image/jpeg', 0.85));
+        };
+      };
+    }
+
+    function toggleEditMode() {
+      isEditMode = !isEditMode;
+      const btnText = document.getElementById('editBtnText');
+      if (btnText) btnText.textContent = isEditMode ? "Save & Exit Edit" : "Enable Edit Mode";
+      
+      document.querySelectorAll('.edit-control').forEach(el => {
+        if (isEditMode) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+      });
+
+      const mTxt = document.getElementById('musicRomanticText');
+      if (mTxt) {
+        mTxt.contentEditable = isEditMode ? "true" : "false";
+        if (isEditMode) mTxt.classList.add('editable-active');
+        else mTxt.classList.remove('editable-active');
+      }
+
+      if (currentPage === 4) { renderHearts(); renderChapterSlide(); }
+      if (currentPage === 5) renderVault();
+      if (currentPage === 6) renderVideoGallery();
+
+      if (!isEditMode) saveAll();
+    }
+
+    function updateChapterText(index, field, text) {
+      if (chaptersData[index]) {
+        chaptersData[index][field] = text.trim();
+        saveAll();
+      }
+    }
+
+    function updateHeartText(field, text) {
+      if (currentPoppedIndex !== null && heartsData[currentPoppedIndex]) {
+        heartsData[currentPoppedIndex][field] = text.trim().replace(/^"|"$/g, '');
+        saveAll();
+        renderHearts();
+      }
+    }
+
+    function handleWallpaperUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      compressImage(file, function(url) {
+        savedWallpaper = url;
+        const wp = document.getElementById('bgWallpaper');
+        if (wp) wp.style.backgroundImage = `url('${url}')`;
+        saveAll();
+      });
+    }
+
+    // ==================== HEARTS ====================
+    function renderHearts() {
+      const container = document.getElementById('heartsContainer');
+      if (!container) return;
+      container.innerHTML = heartsData.map((heart, idx) => `
+        <div onclick="popHeart(${idx})" class="glass-card p-5 rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition transform hover:-translate-y-1.5 hover:border-rose-400">
+          <div class="w-12 h-12 rounded-full bg-rose-500/20 flex items-center justify-center mb-2 glow-heart">
+            <i data-lucide="heart" class="w-6 h-6 text-rose-500 fill-rose-500"></i>
+          </div>
+          <h4 class="text-xs sm:text-sm font-semibold text-white ${isEditMode ? 'editable-active' : ''}">${heart.title}</h4>
+          <span class="text-[10px] text-rose-300/70 mt-1">Tap to Open</span>
+        </div>
+      `).join('');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function popHeart(index) {
+      currentPoppedIndex = index;
+      const data = heartsData[index];
+      const modal = document.getElementById('heartModal');
+      const mediaBox = document.getElementById('modalMediaContainer');
+      const title = document.getElementById('modalTitle');
+      const quote = document.getElementById('modalQuote');
+
+      title.textContent = data.title;
+      quote.textContent = `"${data.quote}"`;
+
+      title.contentEditable = isEditMode ? "true" : "false";
+      quote.contentEditable = isEditMode ? "true" : "false";
+      if (isEditMode) {
+        title.classList.add('editable-active');
+        quote.classList.add('editable-active');
+      } else {
+        title.classList.remove('editable-active');
+        quote.classList.remove('editable-active');
+      }
+
+      if (data.media) {
+        mediaBox.innerHTML = `<img src="${data.media}" class="max-w-full max-h-[340px] w-auto h-auto object-contain rounded-xl" alt="Memory">`;
+      } else {
+        mediaBox.innerHTML = `<i data-lucide="heart" class="w-16 h-16 text-rose-500/40"></i>`;
+      }
+
+      modal.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeHeartModal() {
+      const modal = document.getElementById('heartModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function handleHeartMediaUpload(e) {
+      const file = e.target.files[0];
+      if (!file || currentPoppedIndex === null) return;
+      compressImage(file, function(url) {
+        heartsData[currentPoppedIndex].media = url;
+        saveAll();
+        popHeart(currentPoppedIndex);
+      });
+    }
+
+    // ==================== CHAPTERS ====================
+    function renderChapterSlide() {
+      const viewport = document.getElementById('chapterSlideViewport');
+      const counter = document.getElementById('chapterCounterText');
+      if (!viewport) return;
+
+      if (chaptersData.length === 0) {
+        viewport.innerHTML = `<p class="text-center text-rose-200/70 py-10">No chapters available. Turn on Edit Mode to add one!</p>`;
+        if (counter) counter.textContent = "Chapter 0 of 0";
+        return;
+      }
+
+      if (currentChapterIndex >= chaptersData.length) currentChapterIndex = 0;
+      if (currentChapterIndex < 0) currentChapterIndex = chaptersData.length - 1;
+
+      const chapter = chaptersData[currentChapterIndex];
+      const editClass = isEditMode ? 'editable-active' : '';
+      const canEdit = isEditMode ? 'contenteditable="true"' : 'contenteditable="false"';
+
+      let mediaHtml = '';
+      if (chapter.media && chapter.media.length > 0) {
+        mediaHtml = `
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+            ${chapter.media.map((src, mIdx) => `
+              <div class="relative group rounded-2xl overflow-hidden bg-black/60 border border-white/10 flex items-center justify-center p-2 shadow-inner">
+                <img src="${src}" class="w-full h-auto max-h-[380px] object-contain rounded-xl" alt="Chapter Image">
+                <button 
+                  type="button" 
+                  onclick="deleteChapterMedia(${currentChapterIndex},${mIdx})" 
+                  class="edit-control ${isEditMode ? '' : 'hidden'} absolute top-3 right-3 p-2 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-lg cursor-pointer transition active:scale-95 z-20"
+                  title="Delete Photo"
+                >
+                  <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      viewport.innerHTML = `
+        <div class="relative">
+          <div class="flex items-center justify-between mb-4">
+            <span ${canEdit} onblur="updateChapterText(${currentChapterIndex}, 'tag', this.innerText)" class="text-xs font-bold text-rose-400 tracking-widest uppercase ${editClass}">${chapter.tag}</span>
+            <div class="flex items-center gap-2">
+              <label class="edit-control ${isEditMode ? '' : 'hidden'} p-2 rounded-full bg-white/10 hover:bg-rose-500 text-white cursor-pointer transition" title="Add Photo to Chapter">
+                <i data-lucide="camera" class="w-4 h-4"></i>
+                <input type="file" accept="image/*" onchange="handleChapterMediaUpload(event, ${currentChapterIndex})" class="hidden">
+              </label>
+              <button type="button" onclick="deleteChapter(${currentChapterIndex})" class="edit-control ${isEditMode ? '' : 'hidden'} p-2 rounded-full bg-white/10 hover:bg-red-500 text-white cursor-pointer transition" title="Delete Chapter">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+          <h3 ${canEdit} onblur="updateChapterText(${currentChapterIndex}, 'title', this.innerText)" class="font-serif text-3xl sm:text-4xl font-bold text-white mb-2 ${editClass}">${chapter.title}</h3>
+          <p ${canEdit} onblur="updateChapterText(${currentChapterIndex}, 'date', this.innerText)" class="text-sm font-medium text-rose-300/80 mb-4 ${editClass}">${chapter.date}</p>
+          <p ${canEdit} onblur="updateChapterText(${currentChapterIndex}, 'desc', this.innerText)" class="text-base sm:text-lg text-rose-100/90 leading-relaxed mb-6 ${editClass}">${chapter.desc}</p>
+          <blockquote ${canEdit} onblur="updateChapterText(${currentChapterIndex}, 'quote', this.innerText)" class="border-l-4 border-rose-500 pl-4 italic text-sm sm:text-base text-rose-300 ${editClass}">${chapter.quote}</blockquote>
+          ${mediaHtml}
+        </div>
+      `;
+
+      if (counter) counter.textContent = `Chapter ${currentChapterIndex + 1} of ${chaptersData.length}`;
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function prevChapter() {
+      if (chaptersData.length <= 1) return;
+      currentChapterIndex--;
+      renderChapterSlide();
+    }
+
+    function nextChapter() {
+      if (chaptersData.length <= 1) return;
+      currentChapterIndex++;
+      renderChapterSlide();
+    }
+
+    function addChapter() {
+      chaptersData.push({
+        tag: `CHAPTER 0${chaptersData.length + 1}`,
+        title: "Click Here To Edit Title",
+        date: "Special Date / Place",
+        desc: "Click here to write this chapter's story and what made this moment so special.",
+        quote: "Our sweet quote goes here.",
+        media: []
+      });
+      saveAll();
+      currentChapterIndex = chaptersData.length - 1;
+      renderChapterSlide();
+    }
+
+    function deleteChapter(idx) {
+      if (confirm("Are you sure you want to delete this chapter?")) {
+        chaptersData.splice(idx, 1);
+        saveAll();
+        if (currentChapterIndex >= chaptersData.length) {
+          currentChapterIndex = Math.max(0, chaptersData.length - 1);
+        }
+        renderChapterSlide();
+      }
+    }
+
+    function deleteChapterMedia(chapterIdx, mediaIdx) {
+      if (chaptersData[chapterIdx] && chaptersData[chapterIdx].media) {
+        chaptersData[chapterIdx].media.splice(mediaIdx, 1);
+        saveAll();
+        renderChapterSlide();
+      }
+    }
+
+    function handleChapterMediaUpload(e, chapterIndex) {
+      const file = e.target.files[0];
+      if (!file) return;
+      compressImage(file, function(url) {
+        if (!chaptersData[chapterIndex].media) chaptersData[chapterIndex].media = [];
+        chaptersData[chapterIndex].media.push(url);
+        saveAll();
+        renderChapterSlide();
+      });
+    }
+
+    // ==================== PHOTO VAULT ====================
+    let vaultItems = [];
+
+    function loadSavedVaultFromDB() {
+      if (!db) return;
+      const tx = db.transaction("vaultStore", "readonly");
+      const store = tx.objectStore("vaultStore");
+      const req = store.getAll();
+      req.onsuccess = function() {
+        vaultItems = req.result || [];
+        renderVault();
+      };
+    }
+
+    function renderVault() {
+      const carousel = document.getElementById('carouselContainer');
+      const counter = document.getElementById('slideCounterText');
+      const thumbnails = document.getElementById('thumbnailStrip');
+      if (!carousel) return;
+
+      if (vaultItems.length === 0) {
+        carousel.innerHTML = `
+          <div class="p-8 text-center">
+            <div class="w-16 h-16 mx-auto rounded-full bg-rose-500/20 flex items-center justify-center mb-3 text-rose-400">
+              <i data-lucide="images" class="w-8 h-8"></i>
+            </div>
+            <p class="text-rose-200/70 text-sm">No photos added yet. Turn on Edit Mode to upload 15, 20, or as many photos as you want!</p>
+          </div>
+        `;
+        if (counter) counter.textContent = "Photo 0 of 0";
+        if (thumbnails) thumbnails.innerHTML = '';
+      } else {
+        if (currentVaultIndex >= vaultItems.length) currentVaultIndex = 0;
+        if (currentVaultIndex < 0) currentVaultIndex = vaultItems.length - 1;
+
+        const currentPhotoObj = vaultItems[currentVaultIndex];
+        const photoUrl = URL.createObjectURL(currentPhotoObj.blob);
+
+        carousel.innerHTML = `
+          <div class="relative w-full h-full flex items-center justify-center p-2">
+            <img src="${photoUrl}" class="max-w-full max-h-[460px] w-auto h-auto object-contain rounded-xl shadow-2xl transition duration-500" alt="Vault Memory">
+            <button 
+              type="button" 
+              onclick="deleteVaultMedia(${currentPhotoObj.id})" 
+              class="edit-control ${isEditMode ? '' : 'hidden'} absolute top-4 right-4 p-2.5 rounded-full bg-red-600/90 hover:bg-red-600 text-white shadow-xl cursor-pointer transition active:scale-95 z-20"
+              title="Delete This Slide"
+            >
+              <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
+            </button>
+          </div>
+        `;
+
+        if (counter) counter.textContent = `Photo ${currentVaultIndex + 1} of ${vaultItems.length}`;
+
+        if (thumbnails) {
+          thumbnails.innerHTML = vaultItems.map((item, idx) => {
+            const thumbUrl = URL.createObjectURL(item.blob);
+            return `
+              <button 
+                onclick="jumpToSlide(${idx})" 
+                class="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition ${idx === currentVaultIndex ? 'border-rose-500 scale-105 shadow-md' : 'border-white/10 opacity-50 hover:opacity-100'} bg-black/50 cursor-pointer"
+              >
+                <img src="${thumbUrl}" class="w-full h-full object-cover" alt="Thumb">
+              </button>
+            `;
+          }).join('');
+        }
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function prevSlide() {
+      if (vaultItems.length <= 1) return;
+      currentVaultIndex--;
+      renderVault();
+    }
+
+    function nextSlide() {
+      if (vaultItems.length <= 1) return;
+      currentVaultIndex++;
+      renderVault();
+    }
+
+    function jumpToSlide(idx) {
+      currentVaultIndex = idx;
+      renderVault();
+    }
+
+    function startAutoSlideshow() {
+      if (autoSlideshowTimer) clearInterval(autoSlideshowTimer);
+      if (vaultItems.length > 1) {
+        autoSlideshowTimer = setInterval(nextSlide, 3000);
+        updateAutoBtnUI(true);
+      }
+    }
+
+    function toggleAutoSlideshow() {
+      if (autoSlideshowTimer) {
+        clearInterval(autoSlideshowTimer);
+        autoSlideshowTimer = null;
+        updateAutoBtnUI(false);
+      } else {
+        if (vaultItems.length <= 1) {
+          alert("Please upload at least 2 photos to run the slideshow!");
+          return;
+        }
+        startAutoSlideshow();
+      }
+    }
+
+    function updateAutoBtnUI(isRunning) {
+      const icon = document.getElementById('autoPlayIcon');
+      const text = document.getElementById('autoPlayText');
+      if (icon) icon.setAttribute('data-lucide', isRunning ? 'pause' : 'play');
+      if (text) text.textContent = isRunning ? "Pause Slideshow" : "Play (3s)";
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function handleVaultUpload(e) {
+      const files = Array.from(e.target.files);
+      if (!files.length || !db) return;
+
+      const tx = db.transaction("vaultStore", "readwrite");
+      const store = tx.objectStore("vaultStore");
+
+      files.forEach(f => {
+        store.add({ blob: f });
+      });
+
+      tx.oncomplete = function() {
+        loadSavedVaultFromDB();
+        currentVaultIndex = vaultItems.length;
+        startAutoSlideshow();
+      };
+      e.target.value = '';
+    }
+
+    function deleteVaultMedia(id) {
+      if (!confirm("Delete this photo from vault?")) return;
+      if (!db) return;
+      const tx = db.transaction("vaultStore", "readwrite");
+      const store = tx.objectStore("vaultStore");
+      const delReq = store.delete(id);
+      delReq.onsuccess = function() {
+        loadSavedVaultFromDB();
+      };
+    }
+
+    // ==================== VIDEOS ====================
+    let activeVideoBlobs = [];
+
+    function loadSavedVideosFromDB() {
+      if (!db) return;
+      const tx = db.transaction("videoStore", "readonly");
+      const store = tx.objectStore("videoStore");
+      const req = store.getAll();
+      req.onsuccess = function() {
+        activeVideoBlobs = req.result || [];
+        renderVideoGallery();
+      };
+    }
+
+    function handleMultipleVideoUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!db) {
+        alert("Database initializing, please try again in a moment.");
+        return;
+      }
+
+      const tx = db.transaction("videoStore", "readwrite");
+      const store = tx.objectStore("videoStore");
+      
+      const videoEntry = {
+        blob: file,
+        caption: "A moment I never want to forget with you ❤️"
+      };
+
+      const addReq = store.add(videoEntry);
+      addReq.onsuccess = function() {
+        loadSavedVideosFromDB();
+      };
+      
+      e.target.value = '';
+    }
+
+    function renderVideoGallery() {
+      const grid = document.getElementById('videoGalleryGrid');
+      if (!grid) return;
+
+      if (activeVideoBlobs.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-16 text-center">
+            <div class="w-16 h-16 mx-auto rounded-full bg-rose-500/20 flex items-center justify-center mb-3 text-rose-400">
+              <i data-lucide="clapperboard" class="w-8 h-8"></i>
+            </div>
+            <p class="text-rose-200/60 text-sm">No videos uploaded yet. Switch to Edit Mode to add your first couple reel!</p>
+          </div>
+        `;
+      } else {
+        grid.innerHTML = activeVideoBlobs.map((item) => {
+          const videoUrl = URL.createObjectURL(item.blob);
+          return `
+            <div class="relative group rounded-2xl overflow-hidden bg-black/80 border border-white/10 p-2.5 shadow-xl flex flex-col">
+              <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black flex items-center justify-center">
+                <video 
+                  src="${videoUrl}" 
+                  controls 
+                  playsinline 
+                  preload="metadata" 
+                  onplay="onVideoPlayHandler()"
+                  onpause="onVideoPauseHandler()"
+                  onended="onVideoPauseHandler()"
+                  class="w-full h-full object-contain"
+                ></video>
+                <button 
+                  type="button" 
+                  onclick="deleteGalleryVideo(${item.id})" 
+                  class="edit-control ${isEditMode ? '' : 'hidden'} absolute top-2 right-2 z-30 p-2 rounded-full bg-red-600/90 hover:bg-red-600 text-white shadow-lg cursor-pointer transition active:scale-95" 
+                  title="Delete Video"
+                >
+                  <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
+                </button>
+              </div>
+              <div class="p-3">
+                <p ${isEditMode ? 'contenteditable="true"' : ''} onblur="updateVideoCaption(${item.id}, this.innerText)" class="text-xs font-medium text-rose-200/90 ${isEditMode ? 'editable-active' : ''}">
+                  ${item.caption || "Click in edit mode to add a caption..."}
+                </p>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function onVideoPlayHandler() {
+      if (audio && !audio.paused) {
+        wasMusicPlayingBeforeVideo = true;
+        audio.pause();
+        setVinylState(false);
+      }
+    }
+
+    function onVideoPauseHandler() {
+      if (wasMusicPlayingBeforeVideo && audio) {
+        audio.play().then(() => setVinylState(true)).catch(e => console.log(e));
+        wasMusicPlayingBeforeVideo = false;
+      }
+    }
+
+    function updateVideoCaption(id, text) {
+      if (!db) return;
+      const tx = db.transaction("videoStore", "readwrite");
+      const store = tx.objectStore("videoStore");
+      const req = store.get(id);
+      req.onsuccess = function() {
+        if (req.result) {
+          const data = req.result;
+          data.caption = text.trim();
+          store.put(data);
+        }
+      };
+    }
+
+    function deleteGalleryVideo(id) {
+      if (!confirm("Delete this video?")) return;
+      if (!db) return;
+      const tx = db.transaction("videoStore", "readwrite");
+      const store = tx.objectStore("videoStore");
+      const delReq = store.delete(id);
+      delReq.onsuccess = function() {
+        loadSavedVideosFromDB();
+      };
+    }
+
+    // ==================== BUBBLE HEARTS ====================
+    function createBubbleHearts() {
+      const container = document.getElementById('bubbleContainer');
+      if (!container) return;
+      const heartIcons = ['❤️', '💖', '💕', '💗', '✨'];
+
+      setInterval(() => {
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble-heart';
+        bubble.textContent = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+        bubble.style.left = `${Math.random() * 95}vw`;
+        const duration = Math.random() * 5 + 7;
+        bubble.style.animationDuration = `${duration}s`;
+        bubble.style.fontSize = `${Math.random() * 16 + 14}px`;
+        container.appendChild(bubble);
+
+        setTimeout(() => bubble.remove(), duration * 1000);
+      }, 700);
+    }
+
+    window.onload = function() {
+      createBubbleHearts();
+      if (window.lucide) lucide.createIcons();
+    };
+  </script>
+</body>
+</html>
